@@ -2,14 +2,17 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const API_KEY = process.env.GEMINI_API_KEY || '';
 
-const MODELS = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+const MODELS = ['gemini-2.0-flash', 'gemini-1.5-flash'];
 
 function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function createClient(model: string, systemInstruction?: string) {
-  return new GoogleGenerativeAI(API_KEY).getGenerativeModel({ model, systemInstruction });
+let genAI: GoogleGenerativeAI | null = null;
+
+function getClient() {
+  if (!genAI) genAI = new GoogleGenerativeAI(API_KEY);
+  return genAI;
 }
 
 export const generateContent = async (prompt: string, systemInstruction?: string) => {
@@ -22,8 +25,8 @@ export const generateContent = async (prompt: string, systemInstruction?: string
   for (const model of MODELS) {
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
-        const genAI = createClient(model, systemInstruction);
-        const result = await genAI.generateContent(prompt);
+        const ai = getClient().getGenerativeModel({ model, systemInstruction });
+        const result = await ai.generateContent(prompt);
         return result.response.text();
       } catch (err: unknown) {
         lastError = err;
