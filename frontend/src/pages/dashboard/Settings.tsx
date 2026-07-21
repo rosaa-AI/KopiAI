@@ -11,10 +11,9 @@ import { useHistory } from '../../hooks/useHistory'
 
 export function SettingsPage() {
   const { theme, toggleTheme } = useTheme()
-  const { logout, user } = useAuth()
+  const { logout } = useAuth()
   const { clearAll } = useHistory()
   const navigate = useNavigate()
-  const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [passwordLoading, setPasswordLoading] = useState(false)
   const [passwordMessage, setPasswordMessage] = useState('')
@@ -32,7 +31,6 @@ export function SettingsPage() {
       setPasswordMessage(error.message)
     } else {
       setPasswordMessage('Password berhasil diubah!')
-      setCurrentPassword('')
       setNewPassword('')
     }
   }

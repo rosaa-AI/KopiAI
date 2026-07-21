@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
-  PenTool, MessageSquare, BrainCircuit, TrendingUp, Sparkles, RefreshCw,
+  PenTool, MessageSquare, BrainCircuit, Sparkles, RefreshCw,
   Activity, FileText, Coffee, BarChart3, Lightbulb,
 } from 'lucide-react'
 import { Card } from '../../components/ui/Card'

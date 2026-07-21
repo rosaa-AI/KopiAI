@@ -81,7 +81,7 @@ export function HowItWorks() {
 
         {/* Mobile view: simpler layout */}
         <div className="mt-12 md:hidden space-y-6">
-          {steps.map(({ icon: Icon, title, desc, step }) => (
+          {steps.map(({ title, desc, step }) => (
             <motion.div
               key={step}
               initial={{ opacity: 0, y: 20 }}
