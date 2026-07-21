@@ -72,4 +72,8 @@ app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`KopiAI Backend running on http://localhost:${PORT}`);
+  console.log('[ENV] SUPABASE_URL:', process.env.SUPABASE_URL ? 'SET' : 'MISSING');
+  console.log('[ENV] SUPABASE_SERVICE_ROLE_KEY:', process.env.SUPABASE_SERVICE_ROLE_KEY ? 'SET' : 'MISSING');
+  console.log('[ENV] GEMINI_API_KEY:', process.env.GEMINI_API_KEY ? 'SET' : 'MISSING');
+  console.log('[ENV] JWT_SECRET:', process.env.JWT_SECRET ? 'SET' : 'MISSING');
 });
