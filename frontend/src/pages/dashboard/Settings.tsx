@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Settings as SettingsIcon, Bell, Shield, Palette, Key, Trash2, LogOut } from 'lucide-react'
+import { Settings as SettingsIcon, Bell, Palette, Key, Trash2, LogOut } from 'lucide-react'
 import { Card } from '../../components/ui/Card'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'

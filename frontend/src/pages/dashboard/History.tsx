@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { History as HistoryIcon, Search, ClipboardList, Trash2, Eye, X, ArrowLeft, Copy, CheckCircle2 } from 'lucide-react'
+import { History as HistoryIcon, Search, ClipboardList, Trash2, Eye, ArrowLeft, Copy, CheckCircle2 } from 'lucide-react'
 import { Card } from '../../components/ui/Card'
 import { Button } from '../../components/ui/Button'
 import { MarkdownRenderer } from '../../components/ai/MarkdownRenderer'

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   PenTool, MessageSquare, BrainCircuit, TrendingUp, Sparkles, RefreshCw,
-  Activity, FileText, Coffee, AlertCircle, BarChart3, Lightbulb,
+  Activity, FileText, Coffee, BarChart3, Lightbulb,
 } from 'lucide-react'
 import { Card } from '../../components/ui/Card'
 import { Badge } from '../../components/ui/Badge'
