@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { supabaseAdmin } from './supabase.js';
+import { getSupabaseAdmin } from './supabase.js';
 
 const JWT_SECRET: string = process.env.JWT_SECRET || 'kopiai-dev-secret-key-2026';
 
@@ -25,7 +25,7 @@ export async function authMiddleware(req: AuthRequest, res: Response, next: Next
     const token = parts[1]!;
 
     // Try Supabase token first
-    const { data, error } = await supabaseAdmin.auth.getUser(token);
+    const { data, error } = await getSupabaseAdmin().auth.getUser(token);
     if (data?.user) {
       req.userId = data.user.id;
       next();

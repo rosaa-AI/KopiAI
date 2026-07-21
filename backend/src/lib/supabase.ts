@@ -1,8 +1,18 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+let _admin: SupabaseClient | null = null;
 
-export const supabaseAdmin = createClient(supabaseUrl, supabaseKey, {
-  auth: { persistSession: false },
-});
+export function getSupabaseAdmin(): SupabaseClient {
+  if (!_admin) {
+    const supabaseUrl = process.env.SUPABASE_URL || '';
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+    if (!supabaseUrl || !supabaseKey) {
+      console.warn('SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not set — Supabase features disabled');
+      return { auth: { admin: {} } } as unknown as SupabaseClient;
+    }
+    _admin = createClient(supabaseUrl, supabaseKey, {
+      auth: { persistSession: false },
+    });
+  }
+  return _admin;
+}
