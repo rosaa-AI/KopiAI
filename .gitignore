@@ -1,0 +1,28 @@
+# Node
+node_modules/
+
+# Environment
+.env
+.env.*
+backend/.env
+frontend/.env
+
+# Logs
+*.log
+*.err
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+
+# Build
+dist/
+build/
+
+# Vite
+.vite/
+
+# OS
+.DS_Store
+Thumbs.db
