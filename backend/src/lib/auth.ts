@@ -25,11 +25,17 @@ export async function authMiddleware(req: AuthRequest, res: Response, next: Next
     const token = parts[1]!;
 
     // Try Supabase token first
-    const { data, error } = await getSupabaseAdmin().auth.getUser(token);
+    const supabase = getSupabaseAdmin();
+    const { data, error } = await supabase.auth.getUser(token);
     if (data?.user) {
       req.userId = data.user.id;
       next();
       return;
+    }
+    if (error) {
+      console.error('[AUTH] Supabase getUser error:', error.message);
+    } else {
+      console.error('[AUTH] Supabase getUser returned no user');
     }
 
     // Fallback to legacy JWT
@@ -38,7 +44,8 @@ export async function authMiddleware(req: AuthRequest, res: Response, next: Next
       req.userId = String(decoded.userId);
       next();
       return;
-    } catch {
+    } catch (jwtErr) {
+      console.error('[AUTH] JWT fallback error:', (jwtErr as Error).message);
       throw new Error('Invalid token');
     }
   } catch {
