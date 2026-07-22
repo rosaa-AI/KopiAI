@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
-import { generateContent } from '../lib/gemini.js';
+import { generateContent, GeminiError } from '../lib/gemini.js';
 import type { AuthRequest } from '../lib/auth.js';
 
 const router = Router();
@@ -46,7 +46,11 @@ Jangan gunakan format markdown atau bullet points. Langsung tulis insight-nya sa
     const result = await generateContent(prompt, sysInst);
     res.json({ success: true, data: result.trim() });
   } catch (error) {
-    res.json({ success: false, message: 'Gagal menghasilkan insight.', error: String(error) });
+    if (error instanceof GeminiError) {
+      res.status(error.statusCode).json({ success: false, message: error.message, code: error.code });
+    } else {
+      res.status(500).json({ success: false, message: 'Gagal menghasilkan insight.', code: 'INTERNAL_ERROR' });
+    }
   }
 });
 

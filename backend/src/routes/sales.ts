@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
 import multer from 'multer';
-import { generateContent } from '../lib/gemini.js';
+import { generateContent, GeminiError } from '../lib/gemini.js';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
@@ -22,7 +22,11 @@ router.post('/analyze', upload.single('file'), async (req: Request, res: Respons
     const result = await generateContent(prompt, sysInst);
     res.json({ success: true, data: result });
   } catch (error) {
-    res.json({ success: false, message: 'Gagal menganalisis data penjualan.', error: String(error) });
+    if (error instanceof GeminiError) {
+      res.status(error.statusCode).json({ success: false, message: error.message, code: error.code });
+    } else {
+      res.status(500).json({ success: false, message: 'Gagal menganalisis data penjualan.', code: 'INTERNAL_ERROR' });
+    }
   }
 });
 

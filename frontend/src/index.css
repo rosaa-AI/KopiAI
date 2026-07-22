@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
 @theme {
   --color-coffee: #6F4E37;
   --color-coffee-dark: #3E2723;
@@ -21,6 +23,7 @@ body {
   font-family: var(--font-inter);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #F8F4EC;
 }
 
 .dark body {
