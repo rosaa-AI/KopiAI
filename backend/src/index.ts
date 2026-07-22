@@ -13,6 +13,7 @@ import advisorRouter from './routes/advisor.js';
 import businessAdvisorRouter from './routes/businessAdvisor.js';
 import translatorRouter from './routes/translator.js';
 import dashboardRouter from './routes/dashboard.js';
+import authRouter from './routes/auth.js';
 import { authMiddleware } from './lib/auth.js';
 import { errorHandler, notFoundHandler } from './lib/errorHandler.js';
 
@@ -67,6 +68,7 @@ app.use('/api/advisor', authMiddleware, advisorRouter);
 app.use('/api/business-advisor', authMiddleware, businessAdvisorRouter);
 app.use('/api/translator', authMiddleware, translatorRouter);
 app.use('/api/dashboard', authMiddleware, dashboardRouter);
+app.use('/api/auth', authRouter);
 // Error handling
 app.use(notFoundHandler);
 app.use(errorHandler);

@@ -3,6 +3,8 @@ import { supabase } from '../lib/supabase'
 import { db } from '../lib/db'
 import type { User } from '@supabase/supabase-js'
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+
 interface AppUser {
   id: string
   name: string
@@ -35,7 +37,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const profile = await db.getUserProfile(uid)
       setUser({ ...profile, id: uid, email: profile.email || email })
     } catch {
-      // First login — profile not yet created
       setUser({
         id: uid,
         name: email.split('@')[0],
@@ -48,10 +49,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
         setSupabaseUser(session.user)
-        loadProfile(session.user.id, session.user.email || '')
+        await loadProfile(session.user.id, session.user.email || '')
       }
       setIsLoading(false)
     })
@@ -73,6 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) return { success: false, message: error.message }
     if (data.user) {
+      setSupabaseUser(data.user)
       await loadProfile(data.user.id, data.user.email || '')
       return { success: true }
     }
@@ -80,19 +82,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [loadProfile])
 
   const register = useCallback(async (name: string, email: string, password: string) => {
-    const { data, error } = await supabase.auth.signUp({ email, password })
-    if (error) return { success: false, message: error.message }
-    if (data.user) {
-      // Create user profile
-      await db.upsertProfile(data.user.id, {
-        name,
-        email,
-        store: '',
-        location: '',
+    try {
+      const res = await fetch(API_BASE + '/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password }),
       })
+      const result = await res.json()
+      if (!res.ok || !result.success) {
+        return { success: false, message: result.message || 'Gagal mendaftar' }
+      }
       return { success: true }
+    } catch {
+      return { success: false, message: 'Gagal terhubung ke server. Periksa koneksi Anda.' }
     }
-    return { success: false, message: 'Gagal mendaftar' }
   }, [])
 
   const logout = useCallback(async () => {
