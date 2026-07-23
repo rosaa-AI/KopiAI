@@ -2,7 +2,9 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const API_KEY = process.env.GEMINI_API_KEY || '';
 
-const MODELS = ['gemini-2.0-flash', 'gemini-2.0-flash-lite'];
+const MODELS = [
+  'gemini-2.5-flash'
+];
 
 const MAX_RETRIES = 1;
 const BASE_DELAY = 1000;
@@ -79,6 +81,17 @@ export const generateContent = async (prompt: string, systemInstruction?: string
         return result.response.text();
       } catch (err: unknown) {
         lastError = err;
+
+        console.error(`[Gemini] Full error object for model ${model} (attempt ${attempt}):`);
+        console.error(`  message:`, err instanceof Error ? err.message : String(err));
+        if (typeof err === 'object' && err !== null) {
+          const e = err as Record<string, unknown>;
+          console.error(`  status:`, e.status);
+          console.error(`  code:`, e.code);
+          console.error(`  details:`, e.details);
+          console.error(`  response:`, e.response);
+          console.dir(err, { depth: null });
+        }
 
         if (isRateLimitError(err)) {
           wasRateLimited = true;
