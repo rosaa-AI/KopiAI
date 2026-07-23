@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 import { env } from 'process';
 
 const RAW_KEY = env.GEMINI_API_KEY || '';
@@ -39,43 +39,8 @@ function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-let genAI: GoogleGenerativeAI | null = null;
-
 function getClient() {
-  if (!genAI) genAI = new GoogleGenerativeAI(API_KEY);
-  return genAI;
-}
-
-function isRateLimitError(err: unknown): boolean {
-  const msg = String(err);
-  if (msg.includes('429') || msg.includes('quota') || msg.includes('Quota') || msg.includes('RATE_LIMIT') || msg.includes('RESOURCE_EXHAUSTED')) {
-    return true;
-  }
-  if (typeof err === 'object' && err !== null) {
-    const e = err as Record<string, unknown>;
-    if (e.status === 429 || e.code === 429) return true;
-    if (e.response && typeof e.response === 'object') {
-      const resp = e.response as Record<string, unknown>;
-      if (resp.status === 429) return true;
-    }
-  }
-  return false;
-}
-
-function isModelNotFoundError(err: unknown): boolean {
-  const msg = String(err);
-  if (msg.includes('not found') || msg.includes('not supported') || msg.includes('404') || msg.includes('model_not_found')) {
-    return true;
-  }
-  if (typeof err === 'object' && err !== null) {
-    const e = err as Record<string, unknown>;
-    if (e.status === 404) return true;
-    if (e.response && typeof e.response === 'object') {
-      const resp = e.response as Record<string, unknown>;
-      if (resp.status === 404) return true;
-    }
-  }
-  return false;
+  return new GoogleGenAI({ apiKey: API_KEY });
 }
 
 export class GeminiError extends Error {
@@ -90,6 +55,32 @@ export class GeminiError extends Error {
   }
 }
 
+function isRateLimitError(err: unknown): boolean {
+  if (err instanceof GeminiError) return false;
+  if (err && typeof err === 'object') {
+    const e = err as Record<string, unknown>;
+    if (e.status === 429) return true;
+    const msg = String(e.message ?? '');
+    if (msg.includes('429') || msg.includes('quota') || msg.includes('Quota') || msg.includes('RATE_LIMIT') || msg.includes('RESOURCE_EXHAUSTED')) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isModelNotFoundError(err: unknown): boolean {
+  if (err instanceof GeminiError) return false;
+  if (err && typeof err === 'object') {
+    const e = err as Record<string, unknown>;
+    if (e.status === 404) return true;
+    const msg = String(e.message ?? '');
+    if (msg.includes('not found') || msg.includes('not supported') || msg.includes('404') || msg.includes('model_not_found')) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export const generateContent = async (prompt: string, systemInstruction?: string) => {
   if (!API_KEY) {
     throw new GeminiError('GEMINI_API_KEY tidak dikonfigurasi.', 503, 'CONFIG_ERROR');
@@ -102,9 +93,17 @@ export const generateContent = async (prompt: string, systemInstruction?: string
   for (const model of MODELS) {
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       try {
-        const ai = getClient().getGenerativeModel({ model, systemInstruction });
-        const result = await ai.generateContent(prompt);
-        return result.response.text();
+        const ai = getClient();
+        const response = await ai.models.generateContent({
+          model,
+          contents: prompt,
+          config: systemInstruction ? { systemInstruction } : undefined,
+        });
+        const text = response.text;
+        if (text === undefined || text === null) {
+          throw new GeminiError('AI mengembalikan respons kosong.', 500, 'EMPTY_RESPONSE');
+        }
+        return text;
       } catch (err: unknown) {
         lastError = err;
 
@@ -136,7 +135,14 @@ export const generateContent = async (prompt: string, systemInstruction?: string
           break;
         }
 
-        throw err;
+        if (err instanceof GeminiError) throw err;
+        throw new GeminiError(
+          err instanceof Error ? err.message : 'Unknown Gemini API error',
+          (err && typeof err === 'object' && 'status' in (err as Record<string, unknown>))
+            ? ((err as Record<string, unknown>).status as number)
+            : 503,
+          'API_ERROR'
+        );
       }
     }
   }
