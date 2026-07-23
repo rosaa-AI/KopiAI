@@ -1,6 +1,31 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { env } from 'process';
 
-const API_KEY = process.env.GEMINI_API_KEY || '';
+const RAW_KEY = env.GEMINI_API_KEY || '';
+const API_KEY = RAW_KEY.trim();
+
+function logKeyPreview(label: string, key: string) {
+  if (!key) {
+    console.error(`[Gemini-Key] ${label}: KEY KOSONG`);
+    return;
+  }
+  console.error(`[Gemini-Key] ${label} length: ${key.length}`);
+  console.error(`[Gemini-Key] ${label} starts with: ${key.slice(0, 6)}`);
+  console.error(`[Gemini-Key] ${label} ends with: ...${key.slice(-4)}`);
+  console.error(`[Gemini-Key] ${label} trimmed match: ${key === key.trim()}`);
+  const validPrefixes = ['AIzaSy', 'AIza', 'sk-'];
+  const matched = validPrefixes.some(p => key.startsWith(p));
+  console.error(`[Gemini-Key] ${label} valid prefix: ${matched}`);
+  if (!matched) {
+    console.error(`[Gemini-Key] ${label} WARNING: does not start with expected Gemini API key prefix (AIzaSy...). Possible causes:`);
+    console.error(`  - Key is from Google Cloud service account (JSON) instead of Gemini API key`);
+    console.error(`  - Key contains whitespace or invisible characters`);
+    console.error(`  - Key is an OAuth token instead of an API key`);
+    console.error(`  - Key was truncated or copied incorrectly`);
+  }
+}
+
+logKeyPreview('GEMINI_API_KEY', API_KEY);
 
 const MODELS = [
   'gemini-2.5-flash'
@@ -69,6 +94,7 @@ export const generateContent = async (prompt: string, systemInstruction?: string
   if (!API_KEY) {
     throw new GeminiError('GEMINI_API_KEY tidak dikonfigurasi.', 503, 'CONFIG_ERROR');
   }
+  logKeyPreview('runtime GEMINI_API_KEY', API_KEY);
 
   let lastError: unknown;
   let wasRateLimited = false;
